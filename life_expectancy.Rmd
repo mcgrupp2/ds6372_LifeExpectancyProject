@@ -3,6 +3,9 @@ title: "life_expectancy"
 output: html_document
 ---
 
+regions source:
+https://datahelpdesk.worldbank.org/knowledgebase/articles/906519-world-bank-country-and-lending-groups
+
 ```{r libraries, include=FALSE}
 # Required Libraries
 
