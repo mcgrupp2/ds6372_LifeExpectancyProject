@@ -13,7 +13,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 
 
-```{r libs}
+```{r libs, include=FALSE}
 # Required Libraries
 library(tidyverse)
 library(naniar)
@@ -23,13 +23,17 @@ library(dplyr)
 library(ggplot2)
 library(GGally)
 library(plotly)
+library(fastDummies)
 ```
 
 
 
 ```{r dataload}
 # Read csv from project dir
-life_df <- read_csv("C:/Users/e005108/Downloads/datasets_12603_17232_Life Expectancy Data.csv")
+# life_df <- read_csv("C:/Users/e005108/Downloads/datasets_12603_17232_Life Expectancy Data.csv")
+
+life_df <- read_csv("data/LifeExpectancyData.csv")
+
 life_df <- 
   life_df %>%
   filter(Year == 2014)
@@ -49,6 +53,31 @@ for (i in 1:length(names(life_df))) {
 names(life_df)
 
 summary(life_df)
+```
+
+
+We need to convert "Status" to a factor then to an indicator variable
+
+Status is binomial, so we only need one indicator variable, excess columns are dropped
+
+We have the region for each country retrieved from the world bank website depicting the WHO regions around the world
+
+We can added this and create indicator variables for the regions as well
+
+```{r}
+
+life_df$Status <- as.factor(life_df$Status)
+
+life_df_fctr <- dummy_cols(life_df, select_columns = "Status")
+
+# This will drop the year, Status(character), Status(Developed/indicator) columns
+
+life_drop_cols <- c(2,3,23)
+
+life_df_fctr <- life_df_fctr[,-life_drop_cols]
+
+life_df_fctr
+
 ```
 
 
