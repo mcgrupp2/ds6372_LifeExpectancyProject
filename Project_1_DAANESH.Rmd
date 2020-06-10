@@ -30,9 +30,12 @@ library(fastDummies)
 
 ```{r dataload}
 # Read csv from project dir
+
 # life_df <- read_csv("C:/Users/e005108/Downloads/datasets_12603_17232_Life Expectancy Data.csv")
 
-life_df <- read_csv("data/LifeExpectancyData.csv")
+# life_df <- read_csv("data/LifeExpectancyData.csv")  
+
+life_df <- read_csv("data/LifeExpectancyData_w_regions.csv")
 
 life_df <- 
   life_df %>%
@@ -41,19 +44,27 @@ head(life_df)
 ```
 
 
+```{r}
 
-```{r Header Change}
-for (i in 1:length(names(life_df))) {
-  ifelse(
-    grep(" ",names(life_df)[i]) == TRUE,
-    names(life_df)[i] <- gsub(" ", "_", names(life_df)[i]),
-    next
-  )
-}
-names(life_df)
+life_df$Status <- as.factor(life_df$Status)
 
-summary(life_df)
+life_df$WB_region <- as.factor(life_df$WB_region)
+
+# life_df_fctr <- dummy_cols(life_df, select_columns = "Status")
+
+life_df_fctr <- dummy_cols(life_df, select_columns = c("Status", "WB_region"))
+
+
+# This will drop the year, Status(character), Status(Developed/indicator) columns
+
+# life_drop_cols <- c(2,3,23)
+
+# life_df_fctr <- life_df_fctr[,-life_drop_cols]
+
+life_df_fctr 
+
 ```
+
 
 
 We need to convert "Status" to a factor then to an indicator variable
@@ -64,21 +75,37 @@ We have the region for each country retrieved from the world bank website depict
 
 We can added this and create indicator variables for the regions as well
 
-```{r}
 
-life_df$Status <- as.factor(life_df$Status)
+```{r Header Change}
+#Removing header spaces from the data frames
 
-life_df_fctr <- dummy_cols(life_df, select_columns = "Status")
+for (i in 1:length(names(life_df))) {
+  ifelse(
+    grep(" ",names(life_df)[i]) == TRUE,
+    names(life_df)[i] <- gsub(" ", "_", names(life_df)[i]),
+    next
+  )
+}
 
-# This will drop the year, Status(character), Status(Developed/indicator) columns
 
-life_drop_cols <- c(2,3,23)
+for (i in 1:length(names(life_df_fctr))) {
+  ifelse(
+    grep(" ",names(life_df_fctr)[i]) == TRUE,
+    names(life_df_fctr)[i] <- gsub(" ", "_", names(life_df_fctr)[i]),
+    next
+  )
+}
 
-life_df_fctr <- life_df_fctr[,-life_drop_cols]
+names(life_df)
 
-life_df_fctr
+names(life_df_fctr)
 
+summary(life_df)
 ```
+
+
+
+
 
 
 
@@ -308,3 +335,31 @@ summary(aov(Life_expectancy ~ Polio, data = life_new))
 
 According to the ANOVA test, there is a significant difference between the life expectancy
 of countries that immmunized >=86% and the life expectancy of countries that immunized less than 86% for Polio.
+
+
+
+```{r}
+
+life2 <- life_df_fctr %>%
+          drop_na()
+
+life2 %>%
+  ggplot() +
+  geom_point(
+    aes(
+      x = log(Population),
+      y = Life_expectancy,
+      color = WB_region
+    )
+  ) +
+  facet_wrap(~WB_region)
+
+
+```
+
+There does seem to be an association with repect to the regions having a generally different life expectancy, we may be able to leverage this stat, but I would suppose the region of a country would need to be known.
+
+
+
+
+
