@@ -1,0 +1,310 @@
+---
+title: "Project 1"
+author: "Daanesh"
+date: "6/7/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+
+
+```{r libs, include=FALSE}
+# Required Libraries
+library(tidyverse)
+library(naniar)
+library(gridExtra)
+library(corrplot)
+library(dplyr)
+library(ggplot2)
+library(GGally)
+library(plotly)
+library(fastDummies)
+```
+
+
+
+```{r dataload}
+# Read csv from project dir
+# life_df <- read_csv("C:/Users/e005108/Downloads/datasets_12603_17232_Life Expectancy Data.csv")
+
+life_df <- read_csv("data/LifeExpectancyData.csv")
+
+life_df <- 
+  life_df %>%
+  filter(Year == 2014)
+head(life_df)
+```
+
+
+
+```{r Header Change}
+for (i in 1:length(names(life_df))) {
+  ifelse(
+    grep(" ",names(life_df)[i]) == TRUE,
+    names(life_df)[i] <- gsub(" ", "_", names(life_df)[i]),
+    next
+  )
+}
+names(life_df)
+
+summary(life_df)
+```
+
+
+We need to convert "Status" to a factor then to an indicator variable
+
+Status is binomial, so we only need one indicator variable, excess columns are dropped
+
+We have the region for each country retrieved from the world bank website depicting the WHO regions around the world
+
+We can added this and create indicator variables for the regions as well
+
+```{r}
+
+life_df$Status <- as.factor(life_df$Status)
+
+life_df_fctr <- dummy_cols(life_df, select_columns = "Status")
+
+# This will drop the year, Status(character), Status(Developed/indicator) columns
+
+life_drop_cols <- c(2,3,23)
+
+life_df_fctr <- life_df_fctr[,-life_drop_cols]
+
+life_df_fctr
+
+```
+
+
+
+```{r Locate NAs}
+gg_miss_var(life_df)
+
+life_df %>%
+  filter(
+    Status == "Developed"
+  ) %>%
+  ggplot() +
+  geom_col(
+    aes(
+      x = reorder(Country, Life_expectancy),
+      y = Life_expectancy,
+      fill = Status
+    )
+  ) +
+  coord_flip() +
+  theme(
+    axis.text.y = element_text(size=6),
+  )
+
+
+life_df %>%
+  filter(
+    Status == "Developing"
+  ) %>%
+  ggplot() +
+  geom_col(
+    aes(
+      x = reorder(Country, Life_expectancy),
+      y = Life_expectancy,
+      fill = Status
+    )
+  ) +
+  coord_flip() +
+  theme(
+    axis.text.y = element_text(size=2),
+  )
+
+
+corrplot(
+  cor(life_df[,-(1:3)]), 
+  type="upper"
+)
+```
+
+```{r Remove NAs and see the range of values for each column}
+
+life <- life_df %>% 
+  drop_na()
+
+summary(life)
+
+range(life$Life_expectancy)
+```
+
+22 Variables, 20 of them are Numerical, and 2 of them are Categorical.
+Variables we should drop: Country, Year
+Hepatitis.B has the Min Value and 1st Quartile difference of 76 which is too high (Factor?)
+Polio has the Min value and 1st QUartile difference of 70 which is too high (Factor?)
+Diphtheria has the min value and 1st quartile difference of 78 which is too high (Factor?)
+
+According to the World Health Organization in 2018 they said that
+86% of children in the world are receiving immunizations protecting them from these diseases.
+Source: https://www.chop.edu/centers-programs/vaccine-education-center/global-immunization/diseases-and-vaccines-world-view
+Let us use 86% as the benchmark to turn these columns into factors.
+
+```{r Skewed immunizations as factors}
+life_new <- life %>% 
+  select(-Country, -Year) %>% 
+  mutate(Hepatitis_B = ifelse(Hepatitis_B < 86, "<86% Immunized", ">=86% Immunized"),
+         Polio = ifelse(Polio < 86, "<86% Immunized", ">=86% Immunized"),
+         Diphtheria = ifelse(Diphtheria < 86, "<86% Immunized", ">=86% Immunized"),
+         Hepatitis_B = as.factor(Hepatitis_B),
+         Polio = as.factor(Polio),
+         Diphtheria = as.factor(Diphtheria))
+
+str(life_new)
+```
+
+
+
+Check the correlation of the numerical variables
+```{r Correlation Numeric}
+life_numerical <- life_new %>% 
+  select_if(is.numeric)
+
+ggcorr(life_numerical, 
+       label = T, 
+       label_size = 2,
+       label_round = 2,
+       hjust = 1,
+       size = 3, 
+       color = "black",
+       layout.exp = 5,
+       low = "forestgreen", 
+       mid = "gray95", 
+       high = "darkorange",
+       name = "Correlation")
+```
+
+
+Life Expenctancy has a strong positive correlation with Schooling 
+and Income_composition_of_resources.
+
+Life_expectancy has a strong negative correlation with Adult_Mortality
+which is understandable since if mortality rate in adults is high, Life
+exepctancy would be lower.
+
+Population and Measels show almost no correlation with Life_Expectancy.
+infant_deaths and under.five_deaths have a correlation of 1 (100%) which would
+tell us that there is multicollinearity between them. We should drop one of the
+variables, and I believe under 5 deaths should be dropped. 
+
+```{r remove under-five_deaths variable}
+life_new<- life_new[-c(10)]
+```
+## Including Plots
+
+##Check the distribution of the categorical variables
+
+
+```{r Status Variable, echo=FALSE}
+life_new %>% 
+  group_by(Status) %>% 
+  summarise(count = n()) %>% 
+  mutate(percentage = paste0(round(count/sum(count)*100, 2), "%"))
+
+
+
+life_plot <-  ggplot(life_new, aes(x=Status, y = Life_expectancy, fill = Status)) +
+  geom_boxplot() +
+  scale_fill_manual(values=c("forestgreen", "darkorange")) +
+  labs(x = "Status", y = "Life Expectancy (Age)") +
+  theme(legend.position = "none")
+
+
+ggplotly(life_plot)
+
+```
+
+According to the boxplots, the distribution of higher life_expectancy resides
+in the developed countries, with the plot even showing that the median for developed
+countries (2nd Quartile) beind skewed higher towards the 3rd quartile
+
+
+We want to know if there is any significant difference between the 
+average life expectancy in Developed and Developing countries.
+
+```{r ANOVA}
+summary(aov(Life_expectancy ~ Status, data = life_new))
+```
+
+
+The ANOVA test tells us that there is a significant difference between the life expectancy
+of Developed countries and the life expectancy of Developing countries.
+
+
+```{r Hepatitis_B Variable, echo=FALSE}
+life_new %>% 
+  group_by(Hepatitis_B) %>% 
+  summarise(count = n()) %>% 
+  mutate(percentage = paste0(round(count/sum(count)*100, 2), "%"))
+
+
+
+
+life_plot2 <-  ggplot(life_new, aes(x=Hepatitis_B, y = Life_expectancy, fill = Hepatitis_B)) +
+  geom_boxplot() +
+  scale_fill_manual(values=c("forestgreen", "darkorange")) +
+  labs(x = "Hepatitis B Immunizations", y = "Life Expectancy (Age)") +
+  theme(legend.position = "none")
+
+
+ggplotly(life_plot2)
+
+```
+
+More than 1/3 of countries have less than 86% immunized for Hepatitis B.
+The Life Expectancy of the countries with greater than or equal to 86% Immunized is higher than
+the countries which have less that 86% Immunized. Note that the median (2nd Quartile) for >=86% immunized
+is skewed upwards towards the 3rd quartile.
+
+
+We want to know if there is any significant difference between the 
+average life expectancy in Developed and Developing countries.
+
+```{r ANOVA2}
+summary(aov(Life_expectancy ~ Hepatitis_B, data = life_new))
+```
+
+
+The ANOVA test tells us that there is a significant difference between the life expectancy
+of countries that immmunized >=86% and the life expectancy of countries that immunized less than 86% for Hep B.
+
+
+
+```{r Polio Variable, echo=FALSE}
+life_new %>% 
+  group_by(Polio) %>% 
+  summarise(count = n()) %>% 
+  mutate(percentage = paste0(round(count/sum(count)*100, 2), "%"))
+
+
+life_plot3 <-  ggplot(life_new, aes(x=Polio, y = Life_expectancy, fill = Polio)) +
+  geom_boxplot() +
+  scale_fill_manual(values=c("forestgreen", "darkorange")) +
+  labs(x = "Polio Immunizations", y = "Life Expectancy (Age)") +
+  theme(legend.position = "none")
+
+
+ggplotly(life_plot3)
+
+```
+
+For Polio Immunizations, higher life expectancy resides with the countries 
+that have >=86% Immunized.
+Note that the median (2nd Quartile) for >=86% immunized
+is skewed upwards towards the 3rd quartile.
+
+```{r ANOVA3}
+summary(aov(Life_expectancy ~ Polio, data = life_new))
+```
+
+
+According to the ANOVA test, there is a significant difference between the life expectancy
+of countries that immmunized >=86% and the life expectancy of countries that immunized less than 86% for Polio.
