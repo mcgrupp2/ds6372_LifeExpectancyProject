@@ -9,7 +9,7 @@ output: html_document
 #install.packages("tidyverse")
 #install.packages("naniar")
 #install.packages("gridExtra")
-install.packages("corrplot")
+# install.packages("corrplot")
 
 library(tidyverse)
 library(naniar)
@@ -41,6 +41,8 @@ for (i in 1:length(names(life_df))) {
 }
 
 names(life_df)
+
+
 
 ```
 
@@ -111,6 +113,8 @@ life_df %>%
 
 ```
 
+```{r}
+```
 
 
 
