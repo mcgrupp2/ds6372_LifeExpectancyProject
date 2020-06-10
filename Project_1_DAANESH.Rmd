@@ -24,6 +24,7 @@ library(ggplot2)
 library(GGally)
 library(plotly)
 library(fastDummies)
+library(car)
 ```
 
 
@@ -148,10 +149,6 @@ life_df %>%
   )
 
 
-corrplot(
-  cor(life_df[,-(1:3)]), 
-  type="upper"
-)
 ```
 
 ```{r Remove NAs and see the range of values for each column}
@@ -358,6 +355,20 @@ life2 %>%
 ```
 
 There does seem to be an association with repect to the regions having a generally different life expectancy, we may be able to leverage this stat, but I would suppose the region of a country would need to be known.
+
+
+Here we are looking at the VIFs an we can see there are a number of variables which have a VIF of greater than the 5-10 range, some are in the hundreds. We can remove some of these high multi-colinear values. We can examine the corr plot along with the VIFs to see what we'd like to drop. I will find the things with high correlation and drop identify the one with the higher VIF to drop.
+
+```{r}
+
+life_df_fctr2 <- life2[,c(-1:-3,-24:-32)]  #removing the country name
+
+life_fctr2model <- lm(Life_expectancy~.,data=life_df_fctr2)  # . means all variable not mpg
+
+vif(life_fctr2model)[,3]^2
+
+
+```
 
 
 
