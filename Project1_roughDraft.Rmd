@@ -1,0 +1,73 @@
+---
+title: "DS6372_Project1_LifeExpectancy"
+author: "Jason Rupp, Daanesh Ibrahim and Bala Dakshinamoorthi"
+date: "6/13/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(pander)
+
+```
+
+## Introduction Required
+
+
+
+
+## Data Description  Required
+
+## Exploratory Data Analysis Required
+
+## Addressing Objective 1:
+
+### Restatement of Problem and the overall approach to solve it Required
+
+Objective 1: Display the ability to build regression models using the skills and discussions from Unit 1 and 2 with the purpose of identifying key relationships, interpreting those relationships, and making good predictions.   
+
+- Build a model with the main goal to identify key relationships and is highly interpretable.  Perform your regression analysis and report the predictive ability of your model using a test set or some other means through CV.  Be sure to provide metrics if you compare multiple models.
+- Provide interpretation of the regression coefficients in the model including hypothesis testing, interpretation of regression coefficients, and confidence intervals. It’s also good to mention the Practical vs Statistical significance of the predictors.
+- Fit a second model with the goal to produce the best predictions possible.  Interpretation is no longer important so you can get as complicated as you like.  Use feature selection techniques to avoid under/over fitting.  Compare this model with your first, highly interpretable model, and comment on if this second model brings additional value or the first model is preferred.
+
+## Model Selection Required
+### Type of Selection
+##### Options: 
+            - LASSO, 
+            - RIDGE, 
+            - ELASTIC NET, 
+            - Stepwise, 
+            - Forward, 
+            - Backward,  
+            - Manual / Intuition,
+			      - A mix of all of the above.  	
+
+## Checking Assumptions Required
+### Residual Plots
+### Influential point analysis (Cook’s D and Leverage)
+
+### Compare Competing Models Required
+#### Via:  Training and test set split or CV
+#### Possible Metrics: ASE (Required), AIC, BIC, adj R2, are all welcomed additions
+	
+## Parameter Interpretation (Simple model only)
+#### Interpretation 
+#### Confidence Intervals
+
+             Additional Details on a more complicated regression model 
+
+## Objective 2 Deliverable 
+
+Objective 2 (New):  As mentioned before the advantages of regression is the interpretation of the model produced.  It also works very well when the number of predictors is large and the sample size is small.  Disadvantages to regression is the fact that not all data sets are going to yield “linear” relationships.  If the relationship is quite complex, it will be difficult to fit a good model without a lot of clever engineering of new predictor variables.  
+Nonparameteric regression models are models which do not assume the residuals follow any distribution and do not assume any sort of “linear” structure on what the trend between the response and the predictors could be.  For Objective 2, I want you to use the ISLR text book and read up on one nonparametric technique.  I want you to select from k-nearest neighbors’ regression or regression trees.  Splines could also be a topic but personally I think k-nn or trees would be much easier to digest for a short turn around project such as this. After reading up on this topic, I want you to use a set of predictors used from your previous linear regression models and fit your nonparametric model to the data, keeping in mind what the particular model calls for in terms of what type of predictors can be used and parameters that control for model complexity.  The ISLR book provides code at the end of each chapter and I will also provide a small script for you to have so you’re not starting from scratch.  In your write up after the regression models, I want you to include a small section that includes the following:
+	
+## Final conclusions from the analyses of Objective 1’s interpretable model and include comments on what model would be recommended if prediction was the only goal (comparing all models considered). 
+
+In addition to the overall conclusions, feel free to include additional insights or concerns gleaned from the analysis.  What needs to be done next or how could we do it better next time or if we had more time?
+
+## Appendix 
+Well commented SAS/R Code
+ Graphics and summary tables (Can be placed in the appendix or in the written report itself.)
+
+
+
+  
