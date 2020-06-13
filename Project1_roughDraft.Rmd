@@ -12,10 +12,19 @@ library(pander)
 
 ## Introduction Required
 
+In the global health community, a common measure of the health status of a nation is the life expectancy of a person at birth. This measure can tell a lot about the strength of the nation's health care system and there are great many contributing factors which go into determining this measure. The difficulty with determining life expectancy is that if it is a measure of a population that is living, it will always an estimate. The actual life span or expected life span of a population will take a number of years to determine, as the group would have to expire. To further complicate matters, these estimates are based on whether the conditions of a health system or the relative health status of a nation will remain constant. Due to these factors, we must rely on statistical methods to derive these measures, as they can be very useful to the global health community. The purpose of this project is to use a set of data with roughly 20 features related to the health care systems of 193 nations to develop statistical models which may best predict the life expectancy of a nation. We will begin by presenting the data then briefly explain steps used to evaluate said data for model selection. 
+
 
 
 
 ## Data Description  Required
+
+
+STRAIGHT FROM KAGGLE
+https://www.kaggle.com/kumarajarshi/life-expectancy-who
+About this file
+The Global Health Observatory (GHO) data repository under World Health Organization (WHO) keeps track of the health status as well as many other related factors for all countries The datasets are made available to public for the purpose of health data analysis. The dataset related to life expectancy, health factors for 193 countries has been collected from the same WHO data repository website and its corresponding economic data was collected from United Nation website. Among all categories of health-related factors only those critical factors were chosen which are more representative. It has been observed that in the past 15 years , there has been a huge development in health sector resulting in improvement of human mortality rates especially in the developing nations in comparison to the past 30 years. Therefore, in this project we have considered data from year 2000-2015 for 193 countries for further analysis. The individual data files have been merged together into a single dataset. On initial visual inspection of the data showed some missing values. As the datasets were from WHO, we found no evident errors. Missing data was handled in R software by using Missmap command. The result indicated that most of the missing data was for population, Hepatitis B and GDP. The missing data were from less known countries like Vanuatu, Tonga, Togo,Cabo Verde etc. Finding all data for these countries was difficult and hence, it was decided that we exclude these countries from the final model dataset. The final merged file(final dataset) consists of 22 Columns and 2938 rows which meant 20 predicting variables. All predicting variables was then divided into several broad categories:Immunization related factors, Mortality factors, Economical factors and Social factors.
+
 
 ## Exploratory Data Analysis Required
 
@@ -59,6 +68,11 @@ Objective 1: Display the ability to build regression models using the skills and
 
 Objective 2 (New):  As mentioned before the advantages of regression is the interpretation of the model produced.  It also works very well when the number of predictors is large and the sample size is small.  Disadvantages to regression is the fact that not all data sets are going to yield “linear” relationships.  If the relationship is quite complex, it will be difficult to fit a good model without a lot of clever engineering of new predictor variables.  
 Nonparameteric regression models are models which do not assume the residuals follow any distribution and do not assume any sort of “linear” structure on what the trend between the response and the predictors could be.  For Objective 2, I want you to use the ISLR text book and read up on one nonparametric technique.  I want you to select from k-nearest neighbors’ regression or regression trees.  Splines could also be a topic but personally I think k-nn or trees would be much easier to digest for a short turn around project such as this. After reading up on this topic, I want you to use a set of predictors used from your previous linear regression models and fit your nonparametric model to the data, keeping in mind what the particular model calls for in terms of what type of predictors can be used and parameters that control for model complexity.  The ISLR book provides code at the end of each chapter and I will also provide a small script for you to have so you’re not starting from scratch.  In your write up after the regression models, I want you to include a small section that includes the following:
+
+1.	A brief description of your nonparametric model’s strategy to make a prediction.  Include Pros and Cons.
+2.	Provide any additional details that you feel might be necessary to report.
+3.	Report the test ASE using this nonparametric model so we can see how well it does compared to regression.
+
 	
 ## Final conclusions from the analyses of Objective 1’s interpretable model and include comments on what model would be recommended if prediction was the only goal (comparing all models considered). 
 
