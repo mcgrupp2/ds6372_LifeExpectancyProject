@@ -335,6 +335,8 @@ of countries that immmunized >=86% and the life expectancy of countries that imm
 
 
 
+
+
 ```{r}
 
 life2 <- life_df_fctr %>%
@@ -361,16 +363,57 @@ Here we are looking at the VIFs an we can see there are a number of variables wh
 
 ```{r}
 
-life_df_fctr2 <- life2[,c(-1:-3,-24:-32)]  #removing the country name
+life_df_fctr2 <- life2[,c(-1:-2,-24:-32)]  #removing the country name, indicator vars
 
 life_fctr2model <- lm(Life_expectancy~.,data=life_df_fctr2)  # . means all variable not mpg
 
 vif(life_fctr2model)[,3]^2
 
+```
 
+```{r}
+life_numerica <- life_df_fctr2 %>% 
+  select_if(is.numeric)
+
+ggcorr(life_numerica, 
+       label = T, 
+       label_size = 2,
+       label_round = 2,
+       hjust = 1,
+       size = 3, 
+       color = "black",
+       layout.exp = 5,
+       low = "forestgreen", 
+       mid = "gray95", 
+       high = "darkorange",
+       name = "Correlation")
 ```
 
 
+All have VIF over ten and could be removed:
+under 5 deaths  (AND maybe infant_deaths, I will remove one and re-check),
+percentage_expenditure, 
 
+thinness__1-19_years -- thinness_5-9_years either of these could be removed, lets keep 1-19 yo 
+
+Income_composition_of_resources. 
+
+I will remove these and retry the VIF call.
+
+```{r}
+life_df_fctr2 <- life2[,c(-1:-2, -8, -12, -20:-21, -24:-32)]  #removing the country name, year, indicator vars
+
+life_fctr2model <- lm(Life_expectancy~.,data=life_df_fctr2)  # . means all variable not mpg
+
+vif(life_fctr2model)[,3]^2
+```
+
+If we proceed with this then we have a good starting point for feature selection, we should have multicolinearity taken care of, now we can check the assumptions and address anything funny, like the range issue. I am going to try to scale the data rather than fundamentally change it with creating a factor.
+
+
+
+```{r}
+summary(life_df_fctr2)
+```
 
 
