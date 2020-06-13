@@ -17,11 +17,32 @@ In the global health community, a common measure of the health status of a natio
 
 ## Data Description  Required
 
-The data set used for this project was obtained from Kaggle, the link for which can be found in the appendix. The overall data set contained 22 columns, 1 column that identified the country, 1 which held the life expectancy of the country and 20 features related to the health and economic status of the nation from a 15 year period for 193, between 2000-2015. The user that posted the data claims to have obtained the health related features from the Global Health Observatory (GHO) data repository under World Health Organization (WHO) and the economic features from the United Nations website. Additionally, this user did note that it appeared to be free of errors, though there were missing values. 
+The data set used for this project was obtained from Kaggle, the link for which can be found in the appendix accompanied with a full description of each feature as described on the website for quick reference. The overall data set contained 22 columns, 1 column that identified the country, 1 which held the life expectancy of the country and 20 features related to the health and economic status of 193 nations from a 15 year period, between 2000-2015. The user that posted the data claims to have obtained the health related features from the Global Health Observatory (GHO) data repository under World Health Organization (WHO) and the economic features from the United Nations website. Additionally, this user did note that it appeared to be free of errors, though there were missing values in some of the features. The missing values will addressed later in the discussion. Most of the attributes are self explanatory with regard to the value and the unit, here are some key points about the data the will bring context into interpretation of the models further in the paper. Polio, Hepatitis B, Diphtheria (Diphtheria tetanus toxoid and pertussis - DTP3) refer to the immunization coverage among 1-year-olds (%). The infant, under-five, HIV/AIDS features refer to the number of deaths per 1000 population; HIV/AIDS in the age range of 0-4 years. Adult Mortality is the probability  of both sexes of dying between 15 and 60 years per 1000 population. Measles is the number of reported cases per 1000 population. One thing of note that was noticed about the data set description was that the "thinness 1-19 years" feature said in the description that it was the	prevalence of thinness among children and adolescents for Age **10** to 19 (%), so this is a bit of an ambigious attribute which could refer to either age, either way, it was noted an analysis continued.
 
 
 
 ## Exploratory Data Analysis Required
+
+Life Expenctancy has a strong positive correlation with Schooling 
+and Income_composition_of_resources.
+
+Life_expectancy has a strong negative correlation with Adult_Mortality
+which is understandable since if mortality rate in adults is high, Life
+exepctancy would be lower.
+
+Population and Measels show almost no correlation with Life_Expectancy.
+infant_deaths and under.five_deaths have a correlation of 1 (100%) which would
+tell us that there is multicollinearity between them. We should drop one of the
+variables, and I believe under 5 deaths should be dropped. 
+
+Hepatitis.B has the Min Value and 1st Quartile difference of 76 which is too high (Factor?)
+Polio has the Min value and 1st QUartile difference of 70 which is too high (Factor?)
+Diphtheria has the min value and 1st quartile difference of 78 which is too high (Factor?)
+
+
+According to the boxplots, the distribution of higher life_expectancy resides
+in the developed countries, with the plot even showing that the median for developed
+countries (2nd Quartile) beind skewed higher towards the 3rd quartile
 
 ## Addressing Objective 1:
 
@@ -30,8 +51,15 @@ The data set used for this project was obtained from Kaggle, the link for which 
 Objective 1: Display the ability to build regression models using the skills and discussions from Unit 1 and 2 with the purpose of identifying key relationships, interpreting those relationships, and making good predictions.   
 
 - Build a model with the main goal to identify key relationships and is highly interpretable.  Perform your regression analysis and report the predictive ability of your model using a test set or some other means through CV.  Be sure to provide metrics if you compare multiple models.
+
 - Provide interpretation of the regression coefficients in the model including hypothesis testing, interpretation of regression coefficients, and confidence intervals. It’s also good to mention the Practical vs Statistical significance of the predictors.
+
 - Fit a second model with the goal to produce the best predictions possible.  Interpretation is no longer important so you can get as complicated as you like.  Use feature selection techniques to avoid under/over fitting.  Compare this model with your first, highly interpretable model, and comment on if this second model brings additional value or the first model is preferred.
+
+
+
+
+
 
 ## Model Selection Required
 ### Type of Selection
@@ -85,32 +113,35 @@ STRAIGHT FROM KAGGLE
 About this file
 The Global Health Observatory (GHO) data repository under World Health Organization (WHO) keeps track of the health status as well as many other related factors for all countries The datasets are made available to public for the purpose of health data analysis. The dataset related to life expectancy, health factors for 193 countries has been collected from the same WHO data repository website and its corresponding economic data was collected from United Nation website. Among all categories of health-related factors only those critical factors were chosen which are more representative. It has been observed that in the past 15 years , there has been a huge development in health sector resulting in improvement of human mortality rates especially in the developing nations in comparison to the past 30 years. Therefore, in this project we have considered data from year 2000-2015 for 193 countries for further analysis. The individual data files have been merged together into a single dataset. On initial visual inspection of the data showed some missing values. As the datasets were from WHO, we found no evident errors. Missing data was handled in R software by using Missmap command. The result indicated that most of the missing data was for population, Hepatitis B and GDP. The missing data were from less known countries like Vanuatu, Tonga, Togo,Cabo Verde etc. Finding all data for these countries was difficult and hence, it was decided that we exclude these countries from the final model dataset. The final merged file(final dataset) consists of 22 Columns and 2938 rows which meant 20 predicting variables. All predicting variables was then divided into several broad categories:Immunization related factors, Mortality factors, Economical factors and Social factors.
 
+The following descriptions attached to these features are directly from the kaggle website.
+
 Table: Full Data Description
 
 
-|                   Feature                |      Description            |
-|:----------------------------------------:|:------------|
-| Country	
-| Year	
-| Status	
-| Life expectancy 	
-| Adult Mortality	
-| infant deaths	
-| Alcohol	
-| percentage expenditure	
-| Hepatitis B	
-| Measles 	 
-| BMI 	
-| under-five deaths 	
-| Polio	
-| Total expenditure	
-| Diphtheria 	 
-| HIV/AIDS	
-| GDP	
-| Population	 
-| thinness 1-19 years	 
-| thinness 5-9 years	
-| Income composition of resources	Schooling
+|                   Feature                 |      Description                                                                                       |
+|:------------------------------------------|:-------------------------------------------------------------------------------------------------------|
+| Country	                                  |Country                                                                                                 |
+| Year	                                    |Year                                                                                                    |
+| Status	                                  |Developed or Developing status                                                                          |
+| Life expectancy                           |Life Expectancy in age                                                                                  |
+| Adult Mortality                           |Adult Mortality Rates of both sexes (probability of dying between 15 and 60 years per 1000 population)  |
+| infant deaths  	                          |Number of Infant Deaths per 1000 population                                                             | 
+| Alcohol		                                |Alcohol, recorded per capita (15+) consumption (in litres of pure alcohol)                              | 
+| percentage expenditure	                  |Expenditure on health as a percentage of Gross Domestic Product per capita(%)                           |
+| Hepatitis B                               |Hepatitis B (HepB) immunization coverage among 1-year-olds (%)                                          |
+| Measles 	                                |Measles - number of reported cases per 1000 population                                                  |  
+| BMI 	                                    |Average Body Mass Index of entire population                                                            |  
+| under-five deaths 	                      |Number of under-five deaths per 1000 population                                                         |  
+| Polio	                                    |Polio (Pol3) immunization coverage among 1-year-olds (%)                                                |  
+| Total expenditure	                        |General government expenditure on health as a percentage of total government expenditure (%)            |    
+| Diphtheria 	                              |Diphtheria tetanus toxoid and pertussis (DTP3) immunization coverage among 1-year-olds (%)              |  
+| HIV/AIDS	                                |Deaths per 1 000 live births HIV/AIDS (0-4 years)                                                       |   
+| GDP	                                      |Gross Domestic Product per capita (in USD)                                                              |
+| Population	                              |Population of the country                                                                               |   
+| thinness 1-19 years	                      |Prevalence of thinness among children and adolescents for Age 10 to 19 (%)                             |  
+| thinness 5-9 years	                      |Prevalence of thinness among children for Age 5 to 9(%)                                                 |      
+| Income composition of resources	          |Human Development Index in terms of income composition of resources (index ranging from 0 to 1)         | 
+| Schooling                                 |Number of years of Schooling(years)                                                                     |    
 
 
 
