@@ -1,8 +1,11 @@
 ---
 title: "DS6372_Project1_LifeExpectancy"
-author: "Bala Dakshinamoorthi, Daanesh Ibrahim and Jason Rupp "
+author: 'Bala Dakshinamoorthi, Daanesh Ibrahim and Jason Rupp '
 date: "6/13/2020"
-output: html_document
+output:
+  html_document: default
+  pdf_document: default
+  word_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -22,11 +25,18 @@ library(caret)
 library(MASS)
 library(tree)
 
+# Read CSV
+
 life_df <- read_csv("data/LifeExpectancyData_w_regions.csv")
+
+
+# Make initial df with only 2014
 
 life_df <- 
   life_df %>%
   filter(Year == 2014)
+
+# Fix column header
 
 for (i in 1:length(names(life_df))) {
   ifelse(
@@ -36,8 +46,20 @@ for (i in 1:length(names(life_df))) {
   )
 }
 
+# Drop all rows with NAs
+
 life <- life_df %>% 
   drop_na()
+
+# Create new data frame with factors on immunizations
+
+life_new <- life[,c(-1,-2)] %>% 
+  mutate(Hepatitis_B = ifelse(Hepatitis_B < 86, "<86% Immunized", ">=86% Immunized"),
+         Polio = ifelse(Polio < 86, "<86% Immunized", ">=86% Immunized"),
+         Diphtheria = ifelse(Diphtheria < 86, "<86% Immunized", ">=86% Immunized"),
+         Hepatitis_B = as.factor(Hepatitis_B),
+         Polio = as.factor(Polio),
+         Diphtheria = as.factor(Diphtheria))
 
 ```
 
@@ -57,13 +79,31 @@ The data set used for this project was obtained from Kaggle, the link for which 
 Before statistical modeling could begin, a thorough investigation of the data was necessary. It is important to understand the nature of the data, before applying modeling techniques. As previously stated, first we set out to identify what values were missing in the data set, and come to a decision on how to proceed. 
 
 ```{r eval=FALSE}
+# Show quick plot of NAs in each column
+
 gg_miss_var(life_df)
 ```
 
 As the graphic above shows, there are several missing values as pointed out in the website. In order to solve this issue, a multi-prong approach was utilized. One approach was simply to drop all the missing values from the model. This was justified with the reasoning that the modeling will be done on only the data from the year 2014, this act alone cut nearly 80-90% from the entire dat set, taking almost 2,800 of the data points out of the set from the beginning, it seemed inconsequential to eliminate a few more rows, 52 more rows dropped in total. Another approach was to reference some of the easy values to fill in, mainly the population and GDP portions of the data. These missing values (GDP and population) were easily found from reputable sources, namely from the World Bank website. The additional missing values were filled in using the median of the attribute from where they came. This approach certainly isn't perfect, and could easily yield absurd values with regard to the country itself, but it allowed the utilization of more degrees of freedom for some of the models that were designed. 
 
-With the missing values mitigated, we want to investigate the relationships between each of the predictor variables, and our desired response variable. A correlation plot of the numerical data was created which guiding much of the inital stages of data analysis.
+Before we proceed with the preliminary findings from data analysis, there is fact that should be noted. There is a stark difference in mean life expectancy between the developed and developing nations. Our data set supported this notion, as one can see below, the mean life expectancy for each type of country is noted, along with the plot to show the range.
 
+```{r eval=FALSE, include=FALSE}
+aggregate(life_new$Life_expectancy, by=list(Status=life_new$Status), FUN=mean)
+```
+
+```{r eval=FALSE, include=FALSE}
+life_plot <-  ggplot(life_new, aes(x=Status, y = Life_expectancy, fill = Status)) +
+  geom_boxplot() +
+  scale_fill_manual(values=c("forestgreen", "darkorange")) +
+  labs(x = "Status", y = "Life Expectancy (Age)") +
+  theme(legend.position = "none")
+ggplotly(life_plot)
+```
+
+To bolster the argument, a one-way anova was performed with only status as an explanatory, and though it is not in line with the scope of this research, the result showed that the difference observed in this dataset is statistically relevant, p-value<0.001. This could complicate further analysis, but we will proceed with analysis, and will revisit this concept later in the discussion.
+
+To investigate the relationships between each of the predictor variables, and our desired response variable. A correlation plot of the numerical data was created which guiding much of the inital stages of data analysis.
 
 ```{r Correlation Numeric, eval=FALSE, include=FALSE}
 life_numerical <- life_new %>% 
@@ -83,32 +123,60 @@ ggcorr(life_numerical,
        name = "Correlation")
 ```
 
+With this plot a number of quick observations were possible, and it was the goal to identify relationships between variables. We were able gain some inference on our data set as it relates to the response variable. The above plot shows that life expectancy has a strong positive correlation with Schooling and Income_composition_of_resources. Given this information, we were able to develop a rudimentary model involving these variables. Moving on, we also found that life expectancy has a strong negative correlation with adult mortality which is understandable and inituitive. The description of the data notes that this feature is the probablitity of death between the ages of 15-60, and since if mortality rate in adults is high, life expectancy would be lower, this finding supports what we would expect. 
 
-With this plot a number of quick observations were possible, and it was the goal to identify which variables had relationships. 
+There are a few points to note that was discovered about the immunization statistics particularly Hepatitis B, Polio and Diphtheria. There was a very large range in the amount of coverage for each of the countries. Many countries have values which lie closer to 100, but some are in the single digits. According to the World Health Organization in 2018 they said that 86% of children in the world are receiving immunizations protecting them from these diseases.For some modeling, 86% was used as a benchmark to turn these columns into factors.
+
+```{r Hepatitis_B Variable, echo=FALSE}
+life_new %>% 
+  group_by(Hepatitis_B) %>% 
+  summarise(count = n()) %>% 
+  mutate(percentage = paste0(round(count/sum(count)*100, 2), "%"))
+life_plot2 <-  ggplot(life_new, aes(x=Hepatitis_B, y = Life_expectancy, fill = Hepatitis_B)) +
+  geom_boxplot() +
+  scale_fill_manual(values=c("forestgreen", "darkorange")) +
+  labs(x = "Hepatitis B Immunizations", y = "Life Expectancy (Age)") +
+  theme(legend.position = "none")
+ggplotly(life_plot2)
+```
+
+The above graphic shows that more than 1/3 of countries have less than 86% immunized for Hepatitis B. The Life Expectancy of the countries with greater than or equal to 86% Immunized is higher than the countries which have less that 86% Immunized. Note that the median (2nd Quartile) for >=86% immunized is skewed upwards towards the 3rd quartile.
+
+```{r Polio Variable, echo=FALSE}
+life_new %>% 
+  group_by(Polio) %>% 
+  summarise(count = n()) %>% 
+  mutate(percentage = paste0(round(count/sum(count)*100, 2), "%"))
+life_plot3 <-  ggplot(life_new, aes(x=Polio, y = Life_expectancy, fill = Polio)) +
+  geom_boxplot() +
+  scale_fill_manual(values=c("forestgreen", "darkorange")) +
+  labs(x = "Polio Immunizations", y = "Life Expectancy (Age)") +
+  theme(legend.position = "none")
+ggplotly(life_plot3)
+```
+
+For Polio Immunizations, higher life expectancy resides with the countries that have >=86% Immunized.Note that the median (2nd Quartile) for >=86% immunized is skewed upwards towards the 3rd quartile.
+
+```{r Diptheria Variable, echo=FALSE}
+life_new %>% 
+  group_by(Diphtheria) %>% 
+  summarise(count = n()) %>% 
+  mutate(percentage = paste0(round(count/sum(count)*100, 2), "%"))
+life_plot4 <-  ggplot(life_new, aes(x=Diphtheria, y = Life_expectancy, fill = Diphtheria)) +
+  geom_boxplot() +
+  scale_fill_manual(values=c("forestgreen", "darkorange")) +
+  labs(x = "Diphtheria Immunizations", y = "Life Expectancy (Age)") +
+  theme(legend.position = "none")
+ggplotly(life_plot4)
+```
+
+For Diphtheria Immunizations, higher life expectancy resides with the countries that have >=86% Immunized. Note that the median (2nd Quartile) for >=86% immunized is skewed upwards towards the 3rd quartile. 
+
+These immunization findings really give an overview in the difference in health systems. Further investigations noted that all of the developed countries have >=86% of their people immunized for Polio, and Diphtheria, and A larger percentage of Developed countries have >=86% of their people immunized for Hepatitis_B.
 
 
 
 
-Life Expectancy has a strong positive correlation with Schooling 
-and Income_composition_of_resources.
-
-Life_expectancy has a strong negative correlation with Adult_Mortality
-which is understandable since if mortality rate in adults is high, Life
-expectancy would be lower.
-
-Population and Measles show almost no correlation with Life_Expectancy.
-infant_deaths and under.five_deaths have a correlation of 1 (100%) which would
-tell us that there is multicollinearity between them. We should drop one of the
-variables, and I believe under 5 deaths should be dropped. 
-
-Hepatitis.B has the Min Value and 1st Quartile difference of 76 which is too high (Factor?)
-Polio has the Min value and 1st QUartile difference of 70 which is too high (Factor?)
-Diphtheria has the min value and 1st quartile difference of 78 which is too high (Factor?)
-
-
-According to the box plots, the distribution of higher life_expectancy resides
-in the developed countries, with the plot even showing that the median for developed
-countries (2nd Quartile) being skewed higher towards the 3rd quarterly
 
 ## Addressing Objective 1:
 
@@ -211,8 +279,8 @@ Table: Full Data Description
 
 
 ```{r}
-pander(summary(life_df))
+summary(life_df)
 ```
 
-
+Source: https://www.chop.edu/centers-programs/vaccine-education-center/global-immunization/diseases-and-vaccines-world-view
   
