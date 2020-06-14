@@ -409,7 +409,28 @@ Let us create a model with just these variables.
 life_highp <- lm(formula = Life_expectancy ~ Adult_Mortality + `HIV/AIDS` + Schooling, data = life_new)
 
 summary(life_highp)
+life_pred <- predict(life_highp, life_new, interval="confidence")
+
+summary(life_pred)
 ```
+Coeffients:
+Adult_Mortality -0.026817
+`HIV/AIDS`      -1.035604
+Schooling        1.668685
+
+Interpretation: 
+Adult_Mortality - For every one unit increase of Adult_Mortality (probability of dying between 15-60 years/1000 population), the Life_expectancy is expected to decrease by -0.026817 holding all the other independent variables constant.
+
+`HIV/AIDS` - For every one unit increase of `HIV/AIDS` (Deaths per 1000 live births HIV/AIDS 0-4 years), the Life_expectancy is expected to decrease by -1.035604 holding all the other independent variables constant.
+
+Schooling - For every one unit increase of Schooling (Number of years of Schooling in years), the Life_expectancy is expected to increase by 1.668685 holding all the other independent variables constant.
+
+Confidence Interval: [69.3, 71.73]
+
+We are 95% confident that the confidence interval of [69.3, 71.73] will contain mean Life_expectancy for the model.
+
+
+
 
 ```{r compare Adj R-Squared between Models}
 data.frame(model = c("life_backward","life_forward","life_both", "life_highp"), 
