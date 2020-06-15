@@ -27,7 +27,7 @@ library(tree)
 
 # Read CSV
 
-life_df <- read_csv("data/LifeExpectancyData_w_regions.csv")
+life_df <- read_csv("data/LifeExpectancyData.csv")
 
 
 # Make initial df with only 2014
@@ -63,22 +63,22 @@ life_new <- life[,c(-1,-2)] %>%
 
 ```
 
-## Introduction Required
+## Introduction
 
-In the global health community, a common measure of the health status of a nation is the life expectancy of a person at birth. This measure can tell a lot about the strength of the nation's health care system and there are great many contributing factors which go into determining this measure. The difficulty with determining life expectancy is that if it is a measure of a population that is living, it will always an estimate. The actual life span or expected life span of a population will take a number of years to determine, as the group would have to expire. To further complicate matters, these estimates are based on whether the conditions of a health system or the relative health status of a nation will remain constant. Due to these factors, we must rely on statistical methods to derive these measures, as they can be very useful to the global health community. The purpose of this project is to use a set of data with roughly 20 features related to the health care systems of 193 nations to develop statistical models which may best predict the life expectancy of a nation. We will begin by presenting the data then briefly explain steps used to evaluate said data for model selection.
-
-
-
-## Data Description  Required
-
-The data set used for this project was obtained from Kaggle, the link for which can be found in the appendix accompanied with a full description of each feature as described on the website, and the statistical summary of the data for reference. for quick reference. The overall data set contained 22 columns, 1 column that identified the country, 1 which held the life expectancy of the country and 20 features related to the health and economic status of 193 nations from a 15 year period, between 2000-2015. The user that posted the data claims to have obtained the health related features from the Global Health Observatory (GHO) data repository under World Health Organization (WHO) and the economic features from the United Nations website. Additionally, this user did note that it appeared to be free of errors, though there were missing values in some of the features. The missing values will addressed later in the discussion. Most of the attributes are self explanatory with regard to the value and the unit, here are some key points about the data the will bring context into interpretation of the models further in the paper. Polio, Hepatitis B, Diphtheria (Diphtheria tetanus toxoid and pertussis - DTP3) refer to the immunization coverage among 1-year-olds (%). The infant, under-five, HIV/AIDS features refer to the number of deaths per 1000 population; HIV/AIDS in the age range of 0-4 years. Adult Mortality is the probability  of both sexes of dying between 15 and 60 years per 1000 population. Measles is the number of reported cases per 1000 population. One thing of note that was noticed about the data set description was that the "thinness 1-19 years" feature said in the description that it was the	prevalence of thinness among children and adolescents for Age **10** to 19 (%), so this is a bit of an ambiguous attribute which could refer to either age, either way, it was noted an analysis continued. 
+In the global health community, a common measure of the health status of a nation is the life expectancy of a person at birth. This measure can tell a lot about the strength of the nation's health care system and there are great many contributing factors which go into determining this measure. The difficulty with determining life expectancy is that if it is a measure of a population that is living, it will always an estimate. The actual life span or expected life span of a population will take a number of years to determine, as the group would have to expire. To further complicate matters, these estimates are based on whether the conditions of a health system or the relative health status of a nation will remain constant. Due to these factors, we must rely on statistical methods to derive these measures, as they can be very useful to the global health community. The purpose of this project is to use a set of data with roughly 20 features related to the health care systems of 193 nations to develop statistical models which may best predict the life expectancy of a nation, and satisfy a subset of other objectives, that will be elaborated on later. We will begin by presenting the data then briefly explain steps used to evaluate said data for model selection.
 
 
-## Exploratory Data Analysis Required
+
+## Data Description 
+
+The data set used for this project was obtained from Kaggle, the link for which can be found in the appendix accompanied with a full description of each feature as described on the website, and the statistical summary of the data for reference. The overall data set contained 22 columns, 1 column that identified the country, 1 which held the life expectancy of the country and 20 features related to the health and economic status of 193 nations from a 15 year period, between 2000-2015. The user that posted the data claims to have obtained the health related features from the Global Health Observatory (GHO) data repository under World Health Organization (WHO) and the economic features from the United Nations website. Additionally, this user did note that it appeared to be free of errors, though there were missing values in some of the features. The missing values will addressed later in the discussion. Most of the attributes are self explanatory with regard to the value and the unit, here are some key points about the data the will bring context into interpretation of the models further in the paper. Polio, Hepatitis B, Diphtheria (Diphtheria tetanus toxoid and pertussis - DTP3) refer to the immunization coverage among 1-year-olds (%). The infant, under-five, HIV/AIDS features refer to the number of deaths per 1000 population; HIV/AIDS in the age range of 0-4 years. Adult Mortality is the probability  of both sexes of dying between 15 and 60 years per 1000 population. Measles is the number of reported cases per 1000 population. One thing of note that was noticed about the data set description was that the "thinness 1-19 years" feature said in the description that it was the	prevalence of thinness among children and adolescents for Age **10** to 19 (%), so this is a bit of an ambiguous attribute which could refer to either age, either way, it was noted an analysis continued. 
+
+
+## Exploratory Data Analysis
 
 Before statistical modeling could begin, a thorough investigation of the data was necessary. It is important to understand the nature of the data, before applying modeling techniques. As previously stated, first we set out to identify what values were missing in the data set, and come to a decision on how to proceed. 
 
-```{r eval=FALSE}
+```{r echo=FALSE}
 # Show quick plot of NAs in each column
 
 gg_miss_var(life_df)
@@ -88,11 +88,11 @@ As the graphic above shows, there are several missing values as pointed out in t
 
 Before we proceed with the preliminary findings from data analysis, there is fact that should be noted. There is a stark difference in mean life expectancy between the developed and developing nations. Our data set supported this notion, as one can see below, the mean life expectancy for each type of country is noted, along with the plot to show the range.
 
-```{r eval=FALSE, include=FALSE}
-aggregate(life_new$Life_expectancy, by=list(Status=life_new$Status), FUN=mean)
+```{r echo=FALSE}
+pander(aggregate(life_new$Life_expectancy, by=list(Status=life_new$Status), FUN=mean))
 ```
 
-```{r eval=FALSE, include=FALSE}
+```{r echo=FALSE}
 life_plot <-  ggplot(life_new, aes(x=Status, y = Life_expectancy, fill = Status)) +
   geom_boxplot() +
   scale_fill_manual(values=c("forestgreen", "darkorange")) +
@@ -105,7 +105,7 @@ To bolster the argument, a one-way anova was performed with only status as an ex
 
 To investigate the relationships between each of the predictor variables, and our desired response variable. A correlation plot of the numerical data was created which guiding much of the inital stages of data analysis.
 
-```{r Correlation Numeric, eval=FALSE, include=FALSE}
+```{r Correlation Numeric, echo=FALSE}
 life_numerical <- life_new %>% 
   select_if(is.numeric)
 
@@ -125,13 +125,9 @@ ggcorr(life_numerical,
 
 With this plot a number of quick observations were possible, and it was the goal to identify relationships between variables. We were able gain some inference on our data set as it relates to the response variable. The above plot shows that life expectancy has a strong positive correlation with Schooling and Income_composition_of_resources. Given this information, we were able to develop a rudimentary model involving these variables. Moving on, we also found that life expectancy has a strong negative correlation with adult mortality which is understandable and inituitive. The description of the data notes that this feature is the probablitity of death between the ages of 15-60, and since if mortality rate in adults is high, life expectancy would be lower, this finding supports what we would expect. 
 
-There are a few points to note that was discovered about the immunization statistics particularly Hepatitis B, Polio and Diphtheria. There was a very large range in the amount of coverage for each of the countries. Many countries have values which lie closer to 100, but some are in the single digits. According to the World Health Organization in 2018 they said that 86% of children in the world are receiving immunizations protecting them from these diseases.For some modeling, 86% was used as a benchmark to turn these columns into factors.
+There are a few points to note that was discovered about the immunization statistics particularly Hepatitis B, Polio and Diphtheria. There was a very large range in the amount of coverage for each of the countries. Many countries have values which lie closer to 100, but some are in the single digits. According to the World Health Organization in 2018, 86% of children in the world are receiving immunizations protecting them from these diseases. For some modeling, 86% was used as a benchmark to turn these columns into factors.
 
 ```{r Hepatitis_B Variable, echo=FALSE}
-life_new %>% 
-  group_by(Hepatitis_B) %>% 
-  summarise(count = n()) %>% 
-  mutate(percentage = paste0(round(count/sum(count)*100, 2), "%"))
 life_plot2 <-  ggplot(life_new, aes(x=Hepatitis_B, y = Life_expectancy, fill = Hepatitis_B)) +
   geom_boxplot() +
   scale_fill_manual(values=c("forestgreen", "darkorange")) +
@@ -143,10 +139,6 @@ ggplotly(life_plot2)
 The above graphic shows that more than 1/3 of countries have less than 86% immunized for Hepatitis B. The Life Expectancy of the countries with greater than or equal to 86% Immunized is higher than the countries which have less that 86% Immunized. Note that the median (2nd Quartile) for >=86% immunized is skewed upwards towards the 3rd quartile.
 
 ```{r Polio Variable, echo=FALSE}
-life_new %>% 
-  group_by(Polio) %>% 
-  summarise(count = n()) %>% 
-  mutate(percentage = paste0(round(count/sum(count)*100, 2), "%"))
 life_plot3 <-  ggplot(life_new, aes(x=Polio, y = Life_expectancy, fill = Polio)) +
   geom_boxplot() +
   scale_fill_manual(values=c("forestgreen", "darkorange")) +
@@ -155,13 +147,9 @@ life_plot3 <-  ggplot(life_new, aes(x=Polio, y = Life_expectancy, fill = Polio))
 ggplotly(life_plot3)
 ```
 
-For Polio Immunizations, higher life expectancy resides with the countries that have >=86% Immunized.Note that the median (2nd Quartile) for >=86% immunized is skewed upwards towards the 3rd quartile.
+For Polio Immunizations, higher life expectancy resides with the countries that have >=86% Immunized. Note that the median (2nd Quartile) for >=86% immunized is skewed upwards towards the 3rd quartile.
 
 ```{r Diptheria Variable, echo=FALSE}
-life_new %>% 
-  group_by(Diphtheria) %>% 
-  summarise(count = n()) %>% 
-  mutate(percentage = paste0(round(count/sum(count)*100, 2), "%"))
 life_plot4 <-  ggplot(life_new, aes(x=Diphtheria, y = Life_expectancy, fill = Diphtheria)) +
   geom_boxplot() +
   scale_fill_manual(values=c("forestgreen", "darkorange")) +
@@ -172,19 +160,190 @@ ggplotly(life_plot4)
 
 For Diphtheria Immunizations, higher life expectancy resides with the countries that have >=86% Immunized. Note that the median (2nd Quartile) for >=86% immunized is skewed upwards towards the 3rd quartile. 
 
-These immunization findings really give an overview in the difference in health systems. Further investigations noted that all of the developed countries have >=86% of their people immunized for Polio, and Diphtheria, and A larger percentage of Developed countries have >=86% of their people immunized for Hepatitis_B.
+These immunization findings really give an overview in the difference in health systems. Further investigations noted that all of the developed countries have >=86% of their people immunized for Polio, and Diphtheria, and A larger percentage of Developed countries have >=86% of their people immunized for Hepatitis_B. Most other findings during preliminary data analysis was unremarkable. The next section will present the objectives of this analysis in depth and outline the methods used to solve these goals.
+
+## Objective 1:
+
+#### Primary Model
+
+```{r include=FALSE}
+# Splitting data set into train test sets, 70/30
+set.seed(1234)
+
+life_new_idx <- 
+  sample(
+    1:dim(life_new)[1],
+    round(dim(life_new)[1] * 0.7),
+    replace=F
+    )
+
+life_new_train <- life_new[life_new_idx,]
+
+life_new_test <- life_new[-life_new_idx,]
+```
+
+
+The first objective was to build a model with the main goal to identify key relationships which is highly interpretable. To create a simple model, we first evaluated the data set for multicolinearity to remove any redundancy. The code for this can be found in the appendix, accompanied with a full explanation of the reasoning for removing the variables, however Infant_deaths, Income_composition_of_resources, thinness_5-9_years, and percentage_expenditure were removed.With colinearity address added the remaining of variables to the model, in hope of identifying anything of note with regard to the coeffiecents or the p-values. Below is a summary of the initial simple model, analysis below.
+
+```{r Model Creation, echo=FALSE}
+life_new_vif<- life_new[-c(6,10,18:19)]
+life_lm <- lm(formula = Life_expectancy ~., data = life_new_vif)
+summary(life_lm)
+```
+
+From the model we can see that the coefficients that are negative are StatusDeveloping, Adult_Mortality, infant_deaths, Hepatitis_B>=86% Immunized, Polio>=86% Immunized, HIV/AIDS, and thinness__1-19_years. This is important because tells us that we could typically expect to see an decrease in life expectancy as these values rise. Diphtheria>=86% Immunized is expected to raise Life_expectancy while Hepatitis_B>=86% Immunized and Polio>=86% Immunized are associated with a decrease in life expectancy. It is our opinion that we believe from this model, Adult_Mortality, HIV/AIDS, and Schooling are seen as the best predictors of life expectancy. 
+
+According to the Adj. R-Squared from the entire model, much of the variation in life expectancy can be explained by the explanatory values of the model. This is a very good value to start, though we wanted to perform various feature selection techniques to see if there was an improvement. We applied forward, backward and stepwise feature selection techniques to the data to gain insights. 
+
+```{r Stepwise, include=FALSE}
+life_step <- lm(formula = Life_expectancy ~., data = life_new_vif)
+life_step0 <- lm(formula = Life_expectancy ~1, data = life_new_vif)
+```
+
+```{r backwards, include=FALSE}
+life_backward <- step(life_step, direction = "backward")
+summary(life_backward)
+```
+
+```{r forwards, include=FALSE}
+life_forward <- step(life_step0, scope = list(lower = life_step0, upper = life_step) ,direction = "forward")
+summary(life_forward)
+```
+
+```{r both, include=FALSE}
+life_both <- step(life_step, scope = list(lower = life_step0, upper = life_step) ,direction = "both")
+summary(life_both)
+```
+
+
+According to each feature selection, the 3 variables that have the most siginificance with regards to Life_expectancy are Adult_Mortality, HIV/AIDS, and Schooling. They have the lowest p-values in each of the selection methods ander were chosen by all the model selection methods. With interpretation in mind, these variables were used to create a simple model, from a 70/30 split of the data with a training and test, for comparision with other models.
+
+```{r High p-value variables only, include=FALSE}
+life_highp <- lm(formula = Life_expectancy ~ Adult_Mortality + `HIV/AIDS` + Schooling, data = life_new_train)
+
+summary(life_highp)
+
+
+predictionz <- life_highp %>% predict(life_new_test)
+
+# Compute the prediction error RMSE
+life_highp_ase <- RMSE(predictionz, life_new_test$Life_expectancy)^2
+
+life_pred <- predict(life_highp, life_new_test, interval="confidence")
+
+life_highp_means <- summary(life_pred)[4,]
+```
+
+
+```{r echo=FALSE}
+# Show residual plots
+par(mfrow=c(2,3))
+plot(life_highp, which = c(1:5))
+```
+
+The simple model residual plot show there is relative normality, additionally there doesn't seem to be any points to worry about with regard to Cook's distance. There are some high leverage points, however the residuals are low and we are not concerned. Below is the interpretation of the model.
+
+|Coeffients:    |          |
+|:--------------|:---------|
+|Adult_Mortality| -0.031886|
+|HIV/AIDS       | -0.854541|
+|Schooling      |  1.504618|
+
+```{r}
+pander(life_highp_means)
+```
+
+Interpretation: 
+Adult_Mortality - For every one unit increase of adult mortality, the Life_expectancy is expected to decrease by -0.026, holding all the other variables constant. This predictor is a rather obvious one to include in terms of practical and statistical significance. It was included in the model specifically because it is significant statistically with regard to the data. The practical significance of this predictor may be questionable, as we can only go by the kaggle description, it says it is the probability of dying between 15-60 years per 1000 people. It is not very clear where this probability is calculated from, and we may not necessarily want to rely on a calculated or predicted value in our model but we have included it.
+
+HIV/AIDS - For every one unit increase of HIV/AIDS (Deaths per 1000 live births HIV/AIDS 0-4 years), the life expectancy is expected to decrease by -1.04 holding all the other variables constant. This predictor is a better with regard to practical significance, as it can be emperically measured and it could also garner further study as to how to reduce this number in society. This variable could have a number of confounding effects, so it may be difficult really assess how practical significance.
+
+Schooling - For every additional year of schooling the life expectancy is expected to increase by 1.67 holding all the other independent variables constant. Practical significance of this variable is evident; it would be relatively easy to measure with regard to a population, and by this model, will likely have an impact on the life expectancy of a country. The confounding effect of this variable is that schooling in nations is involved with the public infrastructure in place in the nation, and hospitals would be a part of this infrastructure. So a higher amount of schooling would likely mean that a nation has better funding to do so, and would also more than likely, have the ability to invest in health care. 
+
+
+#### Second Model
+
+```{r include=FALSE}
+# Removing country name, and the year, keeping all other variables.
+
+life_sw <- life[,c(-1:-2)]
+
+# splitting new df on same indexes as selected before for head to head comparison
+
+life_sw_train <- life_sw[life_new_idx,]
+
+life_sw_test <- life_sw[-life_new_idx,]
+```
+
+The second model did not treat the immunizations for Hep B, Polio, and TDAP as factors during feature selection, but left them as the percentages they represented. The goal was to use all of the variables to perform stepwise feature selection to identify attributes, then assess what was selected.
+
+
+```{r}
+set.seed(123)
+
+# Training control for feature selection
+
+train.control <- trainControl(method = "cv", number = 10)
+
+# Stepwise regression feature selection
+
+step.model <- train(Life_expectancy ~., data = life_sw_train,
+                    method = "lmStepAIC", 
+                    trControl = train.control,
+                    trace = FALSE
+                    )
+
+# Final model coefficients
+step1_cof <- step.model$finalModel[1]
+
+# Adult_Mortality, infant_deaths, percentage_expenditure, under-five_deaths, Income_composition_of_resources left will check vifs now
+```
+
+The initial stages of selection were complete, the following attributes were left, Adult_Mortality, infant_deaths, percentage_expenditure, under-five_deaths, Income_composition_of_resources, we now moved on to check the VIF for the variables
+
+
+
+```{r}
+
+step1_lm <- lm(formula = Life_expectancy ~ Adult_Mortality + infant_deaths + percentage_expenditure + 
+    `under-five_deaths` + Income_composition_of_resources, 
+    data = life_sw_train)
+
+step1_vif <- vif(step1_lm)
+
+# VIFs show high colinearity between infant_deaths and under-five_deaths as we saw before, under-five will be dropped and the model will be re-run
+
+final_step1 <- lm(formula = Life_expectancy ~ Adult_Mortality + infant_deaths + percentage_expenditure + 
+     Income_composition_of_resources, 
+    data = life_sw_train)
+
+vif(final_step1)
+
+# Initial evaluation of this model show a high leverage, outlier point. Upon further investigation, it is shown that the row has a value of 957/1000 for infant deaths, this seems unusually high, and grounds to drop the row and re-run the model. Also a google search said it was around 36, so this variable is questionable.
+
+final_step <- lm(formula = Life_expectancy ~ Adult_Mortality + infant_deaths + percentage_expenditure + 
+     Income_composition_of_resources, 
+    data = life_sw_train[-65,])
+
+summary(final_step)
+
+plot(final_step)
+
+par(mfrow=c(2,3))
+plot(final_step, which = c(1:5))
+
+predictionz <- final_step %>% predict(life_sw_test)
+head(predictionz)
+# Compute the prediction error RMSE
+RMSE(predictionz, life_sw_test$Life_expectancy)^2
+
+```
 
 
 
 
 
-## Addressing Objective 1:
 
-### Restatement of Problem and the overall approach to solve it Required
-
-Objective 1: Display the ability to build regression models using the skills and discussions from Unit 1 and 2 with the purpose of identifying key relationships, interpreting those relationships, and making good predictions.   
-
-- Build a model with the main goal to identify key relationships and is highly interpret able.  Perform your regression analysis and report the predictive ability of your model using a test set or some other means through CV.  Be sure to provide metrics if you compare multiple models.
 
 - Provide interpretation of the regression coefficients in the model including hypothesis testing, interpretation of regression coefficients, and confidence intervals. It’s also good to mention the Practical vs Statistical significance of the predictors.
 
@@ -218,6 +377,25 @@ Objective 1: Display the ability to build regression models using the skills and
 ## Parameter Interpretation (Simple model only)
 #### Interpretation 
 #### Confidence Intervals
+
+|Coeffients:    |          |
+|:--------------|:---------|
+|Adult_Mortality| -0.026817|
+|HIV/AIDS       | -1.035604|
+|Schooling      |  1.668685|
+
+Interpretation: 
+Adult_Mortality - For every one unit increase of Adult_Mortality (probability of dying between 15-60 years/1000 population), the Life_expectancy is expected to decrease by -0.026817 holding all the other independent variables constant.
+
+`HIV/AIDS` - For every one unit increase of `HIV/AIDS` (Deaths per 1000 live births HIV/AIDS 0-4 years), the Life_expectancy is expected to decrease by -1.035604 holding all the other independent variables constant.
+
+Schooling - For every one unit increase of Schooling (Number of years of Schooling in years), the Life_expectancy is expected to increase by 1.668685 holding all the other independent variables constant.
+
+
+
+
+
+
 
 Additional Details on a more complicated regression model 
 
@@ -284,3 +462,34 @@ summary(life_df)
 
 Source: https://www.chop.edu/centers-programs/vaccine-education-center/global-immunization/diseases-and-vaccines-world-view
   
+  
+Simple Model VIF evaluation:
+```{r check VIFs and compare to correlation plot to determine which columns to drop}
+life_df_fctr2 <- life_new  #removing the country name, indicator vars
+life_fctr2model <- lm(Life_expectancy~.,data=life_df_fctr2)  # . means all variable not mpg
+vif(life_fctr2model)
+
+```
+Life Expenctancy has a strong positive correlation with Schooling 
+and Income_composition_of_resources but Schooling and Income_composition_of_resources have
+a high correlation with one another. Income_composition_of_resources has a VIF of 11.35 (vs 7.47 for Schooling) so let's drop that.
+
+Infant_deaths and under.five_deaths have a correlation of 1 (100%) which would
+tell us that there is multicollinearity between them. Both have extremely high VIFs, so we should drop one of the variables. and I believe under 5 deaths should be dropped since it covers more ages and includes infant deaths within it.
+
+Percentage_expenditure vs GDP is also highly correlated with one another with both values having high VIFs. GDP is a more well known datapoint and has a higher correlation with Life_expectancy, so let's remove percentage_expenditure.
+
+thinness_5-9_years has a strong correlation with thinness_1-19_years and both have high VIFs. Let's drop thinness_5-9_years since thinness_1-19_years should have years 5-9 within it as well. 
+  
+  
+```{r drop columns and rerun VIFs}
+
+#removes Infant_deaths, Income_composition_of_resources, thinness_5-9_years, and percentage_expenditure.
+life_new<- life_new[-c(6,10,18:19)]
+
+life_df_fctr2 <- life_new 
+life_fctr2model <- lm(Life_expectancy~.,data=life_df_fctr2)  
+vif(life_fctr2model)
+
+```
+
